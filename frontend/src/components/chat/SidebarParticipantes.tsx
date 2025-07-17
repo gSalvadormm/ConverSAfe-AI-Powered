@@ -1,44 +1,11 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ParticipanteItem from "./ParticipanteItem";
 import { Users } from "lucide-react";
-// import { useSocket } from "../../hooks/useSocket"; // 👉 Descomentar para WebSocket real
-
-import {
-//  getParticipantes,
-
-  quitarParticipante,
-  suscribirseParticipantes,
-  cancelarSuscripcionParticipantes,
-} from "../../services/chatSimulado"; // ✅ Simulación local
-
-interface Participante {
-  nombre: string;
-  rol: "Administrador" | "Usuario";
-  imagen?: string;
-}
+import { useChatroomData } from "@/hooks/useChatroomData";
 
 const SidebarParticipantes = () => {
-  const [participantes, setParticipantes] = useState<Participante[]>([]);
-  const user = JSON.parse(localStorage.getItem("auth") || "{}")?.user;
-  const { id: roomId } = useParams(); // 👈 Extrae roomId desde la URL dinámica
-
-useEffect(() => {
-  if (!roomId || !user) return;
-
-
-
-  // 👉 Solo SUSCRIBIRSE una vez, no setear manualmente el estado inicial
-  const actualizar = (nuevos: Participante[]) => {
-    setParticipantes(nuevos);
-  };
-  suscribirseParticipantes(roomId, actualizar);
-
-  return () => {
-    cancelarSuscripcionParticipantes(roomId, actualizar);
-    quitarParticipante(roomId, user.name);
-  };
-}, [roomId, user]);
+  const { id: roomId } = useParams();
+  const { participants } = useChatroomData(roomId || "") as any;
 
 
   return (
@@ -48,13 +15,13 @@ useEffect(() => {
           <Users className="w-5 h-5" />
           <h3 className="text-xl font-semibold">Participantes</h3>
         </div>
-        <span className="text-sm text-gray-600">{participantes.length}</span>
+        <span className="text-sm text-gray-600">{participants.length}</span>
       </div>
 
       <div className="border-b border-gray-300 mb-2" />
 
       <div className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-150px)] pr-2">
-        {participantes.map((p, i) => (
+        {participants.map((p: any, i: number) => (
           <ParticipanteItem
             key={i}
             nombre={p.nombre}

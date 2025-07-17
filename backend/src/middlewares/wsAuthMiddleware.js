@@ -10,7 +10,7 @@ const wsAuthMiddleware = async (socket, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded._id);
 
     if (!user) return next(new Error("User not found"));
 

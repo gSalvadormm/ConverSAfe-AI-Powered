@@ -3,47 +3,30 @@ import Boton from "../../components/Boton";
 import Input from "../../components/Input";
 import { useState } from "react";
 import { FiEdit } from "react-icons/fi";
-import { agregarParticipante } from "@/services/chatSimulado"; // ⬅️ Asegúrate de importar
+import { crearChatRoom } from "@/services/chatService";
 
 const AdminCrearCanal = () => {
   const navigate = useNavigate();
   const [nombre, setNombre] = useState("");
   const user = JSON.parse(localStorage.getItem("auth") || "{}")?.user;
 
-  const handleCrear = (e: React.FormEvent) => {
+  const handleCrear = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre.trim() || !user) return;
 
-    const idGenerado = crypto.randomUUID();
-
-    // Guardar sala
-    const canales = JSON.parse(localStorage.getItem("canales") || "[]");
-    canales.push({
-      id: idGenerado,
-      nombre,
-      creador: user.name,
-      creadorEmail: user.email,
-    });
-    localStorage.setItem("canales", JSON.stringify(canales));
-
-    // ✅ Agregar creador como participante
-    agregarParticipante(idGenerado, {
-      nombre: user.name,
-      rol: user.role === "admin" ? "Administrador" : "Usuario",
-      imagen: user.role === "admin" ? "/admin.png" : "/usuario1.png",
-    });
-
-    // Crear array de mensajes vacío
-    localStorage.setItem(`mensajes-${idGenerado}`, JSON.stringify([]));
-
-    // Redirigir a la sala (después de agregar participante)
-    setTimeout(() => {
+    try {
+      // Llamar a la API real para crear el chatroom
+      const response = await crearChatRoom(nombre);
+      const roomId = response.roomId;
+      // Navegar al chatroom usando el roomId real
       const rutaDestino =
         user.role === "admin"
-          ? `/admin/chatroom/${idGenerado}`
-          : `/user/chatroom/${idGenerado}`;
+          ? `/admin/chatroom/${roomId}`
+          : `/user/chatroom/${roomId}`;
       navigate(rutaDestino);
-    }, 0);
+    } catch (error: any) {
+      alert(error?.message || "Error al crear el canal");
+    }
   };
 
   return (

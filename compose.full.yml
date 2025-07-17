@@ -25,6 +25,7 @@ services:
       - MONGO_URI=mongodb://mongo:27017/conversafe
       - AI_URL=http://data:8000
       - JWT_SECRET=supersecreto
+      - CORS_ALLOWED_ORIGINS=http://frontend:5173,http://localhost:5173
     ports:
       - "3000:3000"
     depends_on:
@@ -45,11 +46,16 @@ services:
       - app-network
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:3000
+        VITE_SOCKET_URL: http://localhost:3000
     container_name: frontend
     restart: always
     environment:
-      - VITE_API_URL=http://backend:3000
+      - VITE_API_URL=http://localhost:3000
+      - VITE_SOCKET_URL=http://localhost:3000
     ports:
       - "5173:5173"
     depends_on:

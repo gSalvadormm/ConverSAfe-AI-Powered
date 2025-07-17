@@ -35,7 +35,7 @@ El backend estará disponible en [http://localhost:3000](http://localhost:3000) 
 
 - `PORT`: Puerto del backend (por defecto 3000)
 - `HOST`: Host del backend
-- `CORS_ALLOWED_ORIGINS`: Orígenes permitidos para CORS
+- `CORS_ALLOWED_ORIGINS`: Orígenes permitidos para CORS, separados por coma. Por defecto `http://localhost:5173,http://frontend:5173`
 - `MONGO_URI`: Cadena de conexión a MongoDB
 - `AI_URL`: URL del servicio de análisis (data)
 - `JWT_SECRET`: Clave secreta para JWT

@@ -20,6 +20,7 @@ services:
       - MONGO_URI=mongodb://mongo:27017/conversafe
       - AI_URL=${AI_URL:-http://localhost:8000}
       - JWT_SECRET=supersecreto
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://frontend:5173
     ports:
       - "3000:3000"
     depends_on:

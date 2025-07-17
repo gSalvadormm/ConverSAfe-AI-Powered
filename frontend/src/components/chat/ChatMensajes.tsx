@@ -3,13 +3,8 @@ import { useParams } from "react-router-dom";
 import { FiSend } from "react-icons/fi";
 import { BotMessageSquare } from "lucide-react";
 import clsx from "clsx";
-// import { useSocket } from "../../hooks/useSocket"; // 👉 Descomentar cuando se use backend
-import {
-  getMensajes,
-  enviarMensaje,
-  suscribirse,
-  cancelarSuscripcion,
-} from "../../services/chatSimulado"; // ✅ Simulación local
+import { useSocket } from "@/hooks/useSocket";
+import { useChatroomData } from "@/hooks/useChatroomData";
 
 interface Mensaje {
   autor: string;
@@ -26,22 +21,21 @@ const ChatMensajes = () => {
 
   const { id: roomId } = useParams(); // 👉 roomId dinámico desde la URL
   const user = JSON.parse(localStorage.getItem("auth") || "{}")?.user;
+  const { socket } = useSocket();
+  const { messages: initialMessages } = useChatroomData(roomId || "");
+
+  useEffect(() => {
+    setMensajes(initialMessages as Mensaje[]);
+  }, [initialMessages]);
 
   const handleEnviar = () => {
-    if (!nuevoMensaje.trim() || !roomId) return;
+    if (!nuevoMensaje.trim() || !roomId || !socket) return;
 
-    const nuevo: Mensaje = {
-      autor: user?.name || "Tú",
-      rol: user?.role === "admin" ? "Administrador" : "Usuario",
-      contenido: nuevoMensaje,
-      hora: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      imagen: user?.role === "admin" ? "/admin.png" : "/usuario1.png",
-    };
+    socket.emit("sendMessage", {
+      roomId,
+      content: nuevoMensaje,
+    });
 
-    enviarMensaje(roomId, nuevo);
     setNuevoMensaje("");
   };
 
@@ -53,17 +47,35 @@ const ChatMensajes = () => {
     });
   }, [mensajes]);
 
-  // Simulación con localStorage
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId || !socket) return;
 
-    setMensajes(getMensajes(roomId));
+    socket.emit("joinRoom", { roomId });
 
-    const actualizar = (nuevos: Mensaje[]) => setMensajes(nuevos);
-    suscribirse(roomId, actualizar);
+    const handler = (msg: any) => {
+      // Agregar el mensaje recibido al estado
+      const esAdmin = msg.sender && user && msg.sender._id === user._id;
+      const nuevo: Mensaje = {
+        autor: msg.sender?.name || "Desconocido",
+        rol: esAdmin ? "Administrador" : "Usuario",
+        contenido: msg.content,
+        hora: new Date(msg.createdAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        imagen: esAdmin ? "/admin.png" : "/usuario1.png",
+      };
+      setMensajes(prev => [...prev, nuevo]);
+    };
 
-    return () => cancelarSuscripcion(roomId, actualizar); 
-  }, [roomId]);
+    socket.on("newMessage", handler);
+    socket.on("chatError", console.warn);
+
+    return () => {
+      socket.off("newMessage", handler);
+      socket.off("chatError");
+    };
+  }, [socket, roomId]);
 
   return (
     <div className="h-full flex flex-col bg-[#E5E7EB] p-4 rounded-none">

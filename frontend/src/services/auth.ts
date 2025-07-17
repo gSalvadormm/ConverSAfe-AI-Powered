@@ -1,4 +1,6 @@
 // src/services/auth.ts
+import { apiClient } from "@/utils/apiClient";
+
 export interface RegistroData {
   name: string;
   email: string;
@@ -7,18 +9,12 @@ export interface RegistroData {
 }
 
 export async function registrarUsuario(data: RegistroData) {
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+  return apiClient("/auth/register", { method: "POST", body: data });
+}
+
+export async function loginUsuario(email: string, password: string) {
+  return apiClient("/auth/login", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
+    body: { email, password },
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Error al registrar");
-  }
-
-  return await response.json();
 }

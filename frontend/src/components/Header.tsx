@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Boton from "@/components/Boton";
-import { quitarParticipante } from "@/services/chatSimulado";
 import { Menu, X } from "lucide-react";
 
 interface HeaderProps {
@@ -14,7 +13,6 @@ const Header = ({ isAuthenticated, userImage }: HeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem("auth") || "{}")?.user;
-  const roomId = location.pathname.split("/chatroom/")[1];
   const enSala = location.pathname.includes("/chatroom/");
 
   const handleLogout = () => {
@@ -23,20 +21,12 @@ const Header = ({ isAuthenticated, userImage }: HeaderProps) => {
   };
 
   const handleSalirSala = () => {
-  if (roomId && user?.name) {
-    quitarParticipante(roomId, user.name);
-  }
-
-  // Limpiar subscripciones (si aplica)
-
-  const destino = user?.role === "admin" ? "/admin/inicio" : "/usuario/inicio";
-
-  // FORZAR recarga completa para evitar estados residuales (opcional)
-  navigate(destino);
-  setTimeout(() => {
-    window.location.reload();
-  }, 100); // pequeña espera para evitar conflicto con navegación
-};
+    const destino = user?.role === "admin" ? "/admin/inicio" : "/usuario/inicio";
+    navigate(destino);
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  };
 
 
   return (

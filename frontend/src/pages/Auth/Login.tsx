@@ -5,7 +5,7 @@ import Input from "../../components/Input";
 import { FiMail, FiLock } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
-// import { apiClient } from "../../utils/apiClient"; // ← Descomenta para backend real
+import { loginUsuario } from "@/services/auth";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -32,64 +32,30 @@ const Login = () => {
     });
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ✅ MODO SIMULADO usando localStorage
-    const usuarios = JSON.parse(localStorage.getItem("usuarios") || "[]");
+    try {
+      const data = await loginUsuario(formData.email, formData.password);
 
-    const user = usuarios.find(
-      (u: any) =>
-        u.email === formData.email.trim() &&
-        u.password === formData.password.trim()
-    );
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({ token: data.token, user: data.user })
+      );
 
-    if (!user) {
-      alert("❌ Credenciales incorrectas");
-      return;
-    }
-
-    const fakeToken = "FAKE-TOKEN";
-
-    localStorage.setItem("auth", JSON.stringify({ token: fakeToken, user }));
-
-    if (user.role === "admin") {
-      navigate("/admin/inicio");
-    } else {
-      navigate("/user/inicio");
-    }
-
-    // 🟦 DESCOMENTA ESTE BLOQUE PARA USAR EL BACKEND REAL
-    /*
-    const handleLogin = async (e: React.FormEvent) => {
-      e.preventDefault();
-
-      try {
-        const data = await apiClient("/auth/login", {
-          method: "POST",
-          body: formData,
-        });
-
-        localStorage.setItem(
-          "auth",
-          JSON.stringify({ token: data.token, user: data.user })
-        );
-
-        if (data.user.role === "admin") {
-          navigate("/admin/inicio");
-        } else {
-          navigate("/user/inicio");
-        }
-      } catch (err: any) {
-        if (err.status === 401) {
-          alert("❌ Credenciales incorrectas");
-        } else {
-          console.error("❌ Error:", err);
-          alert("Error al iniciar sesión");
-        }
+      if (data.user.role === "admin") {
+        navigate("/admin/inicio");
+      } else {
+        navigate("/user/inicio");
       }
-    };
-    */
+    } catch (err: any) {
+      if (err.status === 401) {
+        alert("❌ Credenciales incorrectas");
+      } else {
+        console.error("❌ Error:", err);
+        alert("Error al iniciar sesión");
+      }
+    }
   };
 
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-// import axios from "axios"; // 👉 descomenta cuando conectes al backend
+import { apiClient } from "@/utils/apiClient";
 
 interface Usuario {
   name: string;
@@ -21,6 +21,7 @@ interface ChatroomResponse {
   name: string;
   creador: string;
   creadorEmail: string;
+  adminId: string;
 }
 
 export const useChatroomData = (roomId: string) => {
@@ -35,49 +36,37 @@ export const useChatroomData = (roomId: string) => {
       try {
         setLoading(true);
 
-        // ✅ Simulación con localStorage
-        const canales: ChatroomResponse[] = JSON.parse(localStorage.getItem("canales") || "[]");
-        const canal = canales.find((c) => c.id === roomId);
-        if (!canal) {
-          setError("Canal no encontrado.");
-          return;
-        }
-        setRoom(canal);
+        const data = await apiClient(`/chatrooms/${roomId}`, { auth: true });
 
-        // Participantes simulados
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const user: Usuario = {
-          name: auth?.user?.name,
-          email: auth?.user?.email,
-          avatar: auth?.user?.role === "admin" ? "/admin.png" : "/usuario1.png",
-          role: auth?.user?.role,
-        };
-
-        setParticipants([
-          {
-            ...user,
-            name: canal.creador,
-            avatar: "/admin.png",
-            role: "admin",
-          },
-        ]);
-
-        // Mensajes simulados
-        const mensajesGuardados = JSON.parse(localStorage.getItem(`mensajes-${roomId}`) || "[]");
-        setMessages(mensajesGuardados);
-
-        // --- BACKEND REAL ---
-        /*
-        const token = localStorage.getItem("token");
-        const { data } = await axios.get<ChatroomResponse>(`https://tu-api.com/chatrooms/${roomId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        setRoom({
+          id: data._id,
+          name: data.name,
+          creador: data.admin.name,
+          creadorEmail: data.admin.email,
+          adminId: data.admin._id,
         });
-        setRoom(data);
 
-        // Aquí iría la lógica para setParticipants y setMessages desde la API
-        */
+        const allParticipants: Usuario[] = data.participants.map((p: any) => ({
+          name: p.name,
+          email: p.email,
+          role: p._id === data.admin._id ? "admin" : "user",
+          avatar: p._id === data.admin._id ? "/admin.png" : "/usuario1.png",
+        }));
+
+        setParticipants(allParticipants);
+
+        const msgs: Mensaje[] = data.messages.map((m: any) => ({
+          contenido: m.content,
+          autor: m.sender.name,
+          hora: new Date(m.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          imagen: m.sender._id === data.admin._id ? "/admin.png" : "/usuario1.png",
+          rol: m.sender._id === data.admin._id ? "Administrador" : "Usuario",
+        }));
+
+        setMessages(msgs);
 
       } catch (e) {
         setError("Error al obtener la sala.");

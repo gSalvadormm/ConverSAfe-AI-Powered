@@ -19,8 +19,8 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "http://localhost";
 const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
-  : ["http://localhost:3000"];
+  ? process.env.CORS_ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
+  : ["http://localhost:5173", "http://frontend:5173"];
 
 const app = express();
 const httpServer = createServer(app);

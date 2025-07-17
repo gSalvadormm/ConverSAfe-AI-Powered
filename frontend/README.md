@@ -23,7 +23,8 @@ En otra terminal:
 ```bash
 cd frontend
 npm install
-VITE_API_URL=http://localhost:3000 npm run dev
+VITE_API_URL=http://localhost:3000 \
+VITE_SOCKET_URL=http://localhost:3000 npm run dev
 ```
 
 El frontend estará disponible en [http://localhost:5173](http://localhost:5173) y se conectará al backend levantado por Compose.
@@ -31,6 +32,7 @@ El frontend estará disponible en [http://localhost:5173](http://localhost:5173)
 ## ⚙️ Variables de entorno
 
 - `VITE_API_URL`: URL base del backend (por ejemplo, `http://localhost:3000`)
+- `VITE_SOCKET_URL`: URL para el WebSocket. Debe coincidir con el backend (`http://localhost:3000` en desarrollo).
 
 ## 📝 Notas
 

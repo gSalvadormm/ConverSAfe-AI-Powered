@@ -1,5 +1,7 @@
 // src/services/chatService.ts
 
+import { apiClient } from "@/utils/apiClient";
+
 export interface Mensaje {
   roomId: string;
   sender: {
@@ -52,4 +54,12 @@ export const subscribeToMessages = (
 
 export const unsubscribeFromMessages = () => {
   clearInterval(intervalId);
+};
+
+export const crearChatRoom = async (name: string) => {
+  return apiClient("/chatrooms", {
+    method: "POST",
+    body: { name },
+    auth: true,
+  });
 };
